@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#059669">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>膳衡AI</title>
+<link id="pwaManifest" rel="manifest">
+<style>
+:root{--p:#059669;--bg:#f1f5f9;--c:#fff;--t:#0f172a;--m:#64748b;--b:#e2e8f0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"MiSans","PingFang SC",sans-serif;background:var(--bg);color:var(--t);padding-bottom:82px;user-select:none}
+header{position:sticky;top:0;z-index:9;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--b);padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.bdg{font-size:11px;padding:3px 8px;border-radius:6px;background:#ecfdf5;color:var(--p);border:1px solid #a7f3d0;font-weight:700}
+.wrap{max-width:600px;margin:0 auto;padding:10px 12px}
+.date-bar{display:flex;justify-content:space-between;align-items:center;background:#0f172a;color:#fff;padding:8px 12px;border-radius:12px;margin-bottom:10px;font-size:13px}
+.date-bar button{background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 11px;border-radius:8px;font-weight:700}
+.card{background:var(--c);border-radius:16px;border:1px solid var(--b);padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.hero{background:linear-gradient(135deg,#059669,#0f766e);color:#fff;border-radius:16px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 12px rgba(5,150,105,.2)}
+.btn-w{background:#fff;color:#065f46;border:none;border-radius:10px;padding:9px 13px;font-weight:800;font-size:13px}
+.bar-bg{height:8px;background:#f1f5f9;border-radius:9px;overflow:hidden;margin:4px 0 10px}
+.bar-fg{height:100%;border-radius:9px;transition:width .3s}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tpl{padding:8px;border-radius:10px;border:1px solid var(--b);background:#f8fafc;text-align:left;font-size:12px}
+.tpl.on{border-color:var(--p);background:#ecfdf5;font-weight:700}
+select,input{width:100%;padding:9px;border-radius:9px;border:1px solid var(--b);background:#f8fafc;font-size:15px;margin-bottom:8px}
+.btn-b{width:100%;padding:10px;border-radius:10px;border:none;background:#0f172a;color:#fff;font-weight:700;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;font-size:13px}
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.98);border-top:1px solid var(--b);display:grid;grid-template-columns:repeat(4,1fr);height:62px;padding-bottom:env(safe-area-inset-bottom);z-index:15}
+.nav button{border:none;background:none;font-size:11px;color:var(--m)}
+.nav button.on{color:var(--p);font-weight:800}
+.hide{display:none!important}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:25}
+.mask.show{display:flex}
+.sheet{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:16px;max-height:86vh;overflow-y:auto}
+.btn-clr{border:1px solid #fecdd3;background:#fff1f2;color:#e11d48;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <b style="font-size:16px">膳衡 AI</b> <span class="bdg" id="saveStatus">🟢已自动存档</span>
+    <div style="font-size:11px;color:var(--m)">降TG(4.38)·降尿酸(467)·PWA永久存储版</div>
+  </div>
+  <button class="bdg" onclick="openM('mAI')" id="topAI">AI:智谱免费</button>
+</header>
+
+<div class="wrap">
+  <div id="pwaInstallBanner" class="card hide" style="background:#ecfdf5;border-color:#10b981;display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <b style="font-size:13px;color:#065f46">📲 安装「膳衡AI」到小米桌面</b>
+      <div style="font-size:11px;color:#047857">开启全屏原生体验与永久防清理存储</div>
+    </div>
+    <button class="btn-w" style="background:#059669;color:#fff" onclick="triggerPWAInstall()">立即安装</button>
+  </div>
+
+  <div class="date-bar">
+    <button onclick="shiftDate(-1)">◀ 前一天</button>
+    <div style="text-align:center">
+      <b id="curDateTxt">2026-10-14</b>
+      <span id="todayTag" style="font-size:10px;background:#10b981;padding:1px 5px;border-radius:4px;margin-left:5px">今天</span>
+    </div>
+    <button onclick="shiftDate(1)">后一天 ▶</button>
+  </div>
+
+  <div id="pMeal">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <b>🎯 当日热量与营养看板</b>
+        <button class="btn-clr" onclick="clrMeals()">🗑️ 清空当日</button>
+      </div>
+      <div style="font-size:12px;margin-bottom:8px;color:var(--p)">
+        已吃 <b id="cIn">0</b> / 目标 <b id="cTg">1847</b> kcal (剩余 <b id="cRem">1847</b> kcal)
+      </div>
+      <div style="font-size:12px">蛋白质 (护肘恢复): <b id="pIn">0</b>/<span id="pTg">115</span>g</div>
+      <div class="bar-bg"><div id="bP" class="bar-fg" style="width:0%;background:#4f46e5"></div></div>
+      <div style="font-size:12px">碳水 (防TG合成): <b id="cCarb">0</b>/<span id="cTgC">231</span>g</div>
+      <div class="bar-bg"><div id="bC" class="bar-fg" style="width:0%;background:#d97706"></div></div>
+      <div style="font-size:12px">脂肪 (严控&lt;51g): <b id="fIn">0</b>/<span id="fTg">51</span>g</div>
+      <div class="bar-bg"><div id="bF" class="bar-fg" style="width:0%;background:#e11d48"></div></div>
+    </div>
+
+    <div class="hero">
+      <div>
+        <b>📸 拍照自动识餐算热量</b>
+        <div style="font-size:11px;opacity:.9">支持食堂餐盘拆解 &amp; 湘菜过水涮油(-50%脂)</div>
+      </div>
+      <button class="btn-w" onclick="openM('mCam')">立即拍照</button>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">⚡ 一键载入三餐模板到当日</div>
+      <div class="grid3">
+        <button class="tpl" id="tb_t1" onclick="setTpl('t1')">①食堂减脂<br><small>燕麦+鸡胸+鱼</small></button>
+        <button class="tpl" id="tb_t2" onclick="setTpl('t2')">②食堂清淡<br><small>玉米+牛腱+虾</small></button>
+        <button class="tpl" id="tb_t3" onclick="setTpl('t3')">③改良湘菜<br><small>剁椒鱼+牛肉</small></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px">➕ 手动加菜 (含食堂/湘菜库)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <select id="sSlot">
+          <option value="早餐">🌅 早餐</option>
+          <option value="午餐" selected>☀️ 午餐</option>
+          <option value="晚餐">🌙 晚餐</option>
+          <option value="加餐">🍎 加餐</option>
+        </select>
+        <input id="iG" type="number" value="150" placeholder="克重g">
+      </div>
+      <select id="sFood"></select>
+      <button class="btn-b" onclick="addF()">+ 添加到当日餐单</button>
+    </div>
+
+    <div id="mList"></div>
+  </div>
+
+  <div id="pPlan" class="hide">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <b>💧 当日 2500ml 排酸消晶饮水</b>
+        <b style="color:#0284c7"><span id="wTxt">0</span>/2500ml</b>
+      </div>
+      <div style="font-size:11px;color:var(--m);margin-bottom:8px">改善尿比重1.028与pH5.5，冲刷左肾2×2mm结晶</div>
+      <div class="grid4" id="wGrid"></div>
+    </div>
+    <div class="card">
+      <b style="display:block;margin-bottom:8px">🏀 4周重返球场·左肘康复周历</b>
+      <div id="wkList"></div>
+    </div>
+  </div>
+
+  <div id="pBio" class="hide">
+    <div class="card">
+      <b style="display:block;margin-bottom:6px">💾 数据物理备份与恢复 (双重保险)</b>
+      <p style="font-size:11px;color:var(--m);margin-bottom:10px">支持一键导出全量历史JSON文件或恢复备份：</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <button class="btn-b" style="background:#059669" onclick="exportDB()">⬇️ 导出备份文件</button>
+        <label class="btn-b" style="background:#0284c7;text-align:center;cursor:pointer">
+          ⬆️ 导入恢复备份
+          <input type="file" accept=".json" style="display:none" onchange="importDB(this)">
+        </label>
+      </div>
+      <div id="bkInfo" style="font-size:11px;color:#059669;font-weight:700"></div>
+    </div>
+
+    <div class="card">
+      <b style="display:block;margin-bottom:8px">⚙️ 汪嘉鸣身体档案 (身高171.5cm)</b>
+      <label style="font-size:12px">当前体重(kg)</label>
+      <input id="pW" type="number" step="0.1" value="75.6" oninput="upProf()">
+      <label style="font-size:12px">运动恢复系数</label>
+      <select id="pA" onchange="upProf()">
+        <option value="1.2">久坐停训期 (1.2)</option>
+        <option value="1.375" selected>左肘恢复有氧期 (1.375)</option>
+        <option value="1.55">重返周四篮球赛 (1.55)</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <b style="display:block;margin-bottom:8px">📊 2025.12 体检核心指标逆转目标</b>
+      <div class="row"><span>甘油三酯 (TG)</span><b style="color:#e11d48">4.38 &rarr; &lt;1.70 mmol/L</b></div>
+      <div class="row"><span>总胆固醇 / LDL-C</span><b style="color:#d97706">7.01 &rarr; &lt;5.18 mmol/L</b></div>
+      <div class="row"><span>血尿酸 / 左肾结晶</span><b style="color:#d97706">467 &rarr; &lt;400 μmol/L</b></div>
+      <div class="row"><span>肝功 ALT / GGT</span><b style="color:#059669">57.9 &rarr; &le;40 IU/L</b></div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="on" onclick="tab('pMeal',this)">🍽️<br>记餐看板</button>
+  <button onclick="openM('mCam')" style="color:var(--p);font-weight:800">📸<br>拍餐盘</button>
+  <button onclick="tab('pPlan',this)">💧<br>饮水运动</button>
+  <button onclick="tab('pBio',this)">💾<br>备份档案</button>
+</nav>
+
+<div id="mCam" class="mask">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <b>📸 餐盘拍照识别与过水涮油</b>
+      <button onclick="closeM('mCam')" style="border:none;background:none;font-size:18px">✕</button>
+    </div>
+    <label style="display:block;border:2px dashed var(--p);background:#ecfdf5;padding:12px;border-radius:12px;text-align:center;margin-bottom:10px;font-weight:700;color:#065f46">
+      📷 点击拉起小米15U相机拍餐盘
+      <input type="file" accept="image/*" capture="environment" style="display:none" onchange="rAI()">
+    </label>
+    <div id="aiBox"></div>
+    <button class="btn-b" style="background:var(--p);margin-top:10px" onclick="impAI()">✅ 确认导入当日午餐</button>
+  </div>
+</div>
+
+<div id="mAI" class="mask">
+  <div class="sheet">
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <b>🔑 5大视觉模型一键切换</b>
+      <button onclick="closeM('mAI')" style="border:none;background:none;font-size:18px">✕</button>
+    </div>
+    <select id="sProv" onchange="chgP()">
+      <option value="智谱免费(glm-4v-flash)">① 智谱 GLM-4V-Flash (国内直连免费)</option>
+      <option value="硅基流动(Qwen2.5-VL)">② 硅基流动 Qwen2.5-VL-72B (直连)</option>
+      <option value="阿里百炼(qwen-vl-max)">③ 阿里云百炼 Qwen-VL-Max (中餐最强)</option>
+      <option value="Google Gemini 2.5">④ Google Gemini 2.5 Flash</option>
+      <option value="豆包/OpenRouter">⑤ 豆包火山 / OpenRouter</option>
+    </select>
+    <input id="iKey" type="password" placeholder="粘贴对应平台 API Key (自动保存)" oninput="chgP()">
+    <button class="btn-b" style="background:var(--p)" onclick="closeM('mAI')">保存并启用</button>
+  </div>
+</div>
+
+<script>
+(function initPWA(){
+  const iconSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="42" fill="#059669"/><text x="96" y="128" font-size="96" font-family="sans-serif" font-weight="bold" fill="#fff" text-anchor="middle">膳</text></svg>';
+  const iconUrl='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(iconSvg)));
+  const manifest={name:'膳衡AI-汪嘉鸣代谢管理',short_name:'膳衡AI',start_url:location.href,display:'standalone',background_color:'#f1f5f9',theme_color:'#059669',icons:[{src:iconUrl,sizes:'192x192',type:'image/svg+xml',purpose:'any maskable'}]};
+  document.getElementById('pwaManifest').href=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'}));
+  if(navigator.storage&&navigator.storage.persist){navigator.storage.persist();}
+})();
+
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('pwaInstallBanner').classList.remove('hide');
+});
+
+function triggerPWAInstall(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(()=>{
+      deferredPrompt=null;
+      document.getElementById('pwaInstallBanner').classList.add('hide');
+    });
+  }
+}
+
+const SK='nutri_wjm_archive_db_v6';
+const F=[
+  {n:'生燕麦片(降胆固醇)',cal:367,p:14,c:66,f:6.7},
+  {n:'脱脂/低脂奶(促排酸)',cal:42,p:3.4,c:5,f:1},
+  {n:'水煮鸡蛋(零嘌呤)',cal:144,p:13.3,c:2.8,f:8.8},
+  {n:'食堂紫米/糙米饭',cal:115,p:2.8,c:24.5,f:.7},
+  {n:'食堂去皮香煎鸡胸肉',cal:145,p:27.5,c:1.5,f:3.2},
+  {n:'白灼西蓝花/时蔬',cal:38,p:2.6,c:4.8,f:1},
+  {n:'食堂卤牛腱子',cal:155,p:28,c:2,f:3.8},
+  {n:'清蒸鲈鱼(含Omega3)',cal:112,p:19.5,c:.5,f:3.4},
+  {n:'白灼虾净肉(限100g)',cal:95,p:20.2,c:.8,f:1.2},
+  {n:'蒸甜玉米/红薯',cal:98,p:2.8,c:21,f:.6},
+  {n:'[改良湘菜]少油剁椒蒸鱼',cal:118,p:19,c:1.8,f:3.8},
+  {n:'[改良湘菜]纯瘦小炒牛肉',cal:152,p:22,c:3.5,f:5.5},
+  {n:'[传统湘菜]农家小炒肉(高脂)',cal:295,p:12,c:3.5,f:26},
+  {n:'圣女果/低糖水果',cal:22,p:.9,c:4.8,f:.2}
+];
+
+function getTodayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+let curDate=getTodayStr();
+let DB={
+  w:75.6,a:1.375,prov:'智谱免费(glm-4v-flash)',key:'',
+  WK:[
+    {d:'周一·单车/椭圆机40分(护左肘)',ok:0},
+    {d:'周二·深蹲+左肘旋前旋后康复',ok:0},
+    {d:'周三·坡度快走/单车40分',ok:0},
+    {d:'周四·🏀篮球无对抗运球投篮45分',ok:0},
+    {d:'周五·椭圆机燃脂40分',ok:0},
+    {d:'周六·靠墙静蹲+前臂握力球',ok:0},
+    {d:'周日·散步拉伸恢复',ok:0}
+  ],
+  days:{}
+};
+
+let AI=[
+  {n:'📸 湘式农家小炒肉(挑瘦肉)',g:130,cal:245,p:15,c:3.5,f:19,r:1},
+  {n:'📸 剁椒蒸鱼肉',g:160,cal:118,p:19,c:1.8,f:3.8,r:0},
+  {n:'📸 食堂紫米杂粮饭',g:140,cal:115,p:2.8,c:24.5,f:.7,r:0}
+];
+
+document.getElementById('sFood').innerHTML=F.map((x,i)=>'<option value="'+i+'">'+x.n+' ('+x.cal+'kcal)</option>').join('');
+
+function ensureDay(dt){
+  if(!DB.days[dt])DB.days[dt]={wt:0,tpl:'none',M:{'早餐':[],'午餐':[],'晚餐':[],'加餐':[]}};
+  return DB.days[dt];
+}
+
+function save(){
+  try{
+    localStorage.setItem(SK,JSON.stringify(DB));
+    document.getElementById('saveStatus').textContent='🟢已保存 '+new Date().toTimeString().slice(0,5);
+  }catch(e){}
+}
+
+function load(){
+  try{
+    const r=localStorage.getItem(SK);
+    if(r){
+      DB={...DB,...JSON.parse(r)};
+      ensureDay(curDate);
+      document.getElementById('pW').value=DB.w;
+      document.getElementById('pA').value=DB.a;
+      document.getElementById('sProv').value=DB.prov;
+      document.getElementById('iKey').value=DB.key||'';
+      document.getElementById('topAI').textContent='AI:'+DB.prov.slice(0,6);
+      render();
+      return;
+    }
+  }catch(e){}
+  ensureDay(curDate);
+  setTpl('t1');
+}
+
+function shiftDate(offset){
+  const p=curDate.split('-');
+  const d=new Date(+p[0],+p[1]-1,+p[2]);
+  d.setDate(d.getDate()+offset);
+  curDate=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  ensureDay(curDate);
+  render();
+}
+
+function clrMeals(){
+  const dy=ensureDay(curDate);
+  dy.M={'早餐':[],'午餐':[],'晚餐':[],'加餐':[]};
+  dy.tpl='none';
+  save();
+  render();
+}
+
+function setTpl(k){
+  const dy=ensureDay(curDate);
+  dy.tpl=k;
+  if(k==='t1')dy.M={'早餐':[{...F[0],g:50},{...F[1],g:250},{...F[2],g:80}],'午餐':[{...F[3],g:160},{...F[4],g:160},{...F[5],g:220}],'晚餐':[{...F[9],g:130},{...F[7],g:150},{...F[5],g:200}],'加餐':[{...F[13],g:150}]};
+  if(k==='t2')dy.M={'早餐':[{...F[9],g:180},{...F[1],g:250},{...F[2],g:100}],'午餐':[{...F[3],g:150},{...F[6],g:150},{...F[5],g:220}],'晚餐':[{...F[3],g:100},{...F[8],g:100},{...F[5],g:200}],'加餐':[{...F[13],g:150}]};
+  if(k==='t3')dy.M={'早餐':[{...F[0],g:50},{...F[1],g:250},{...F[2],g:60}],'午餐':[{...F[3],g:150},{...F[11],g:150},{...F[5],g:200}],'晚餐':[{...F[9],g:120},{...F[10],g:180},{...F[5],g:200}],'加餐':[{...F[13],g:150}]};
+  save();
+  render();
+}
+
+function addF(){
+  const dy=ensureDay(curDate),s=document.getElementById('sSlot').value,f=F[document.getElementById('sFood').value],g=+document.getElementById('iG').value||100;
+  dy.M[s].push({...f,g});
+  save();
+  render();
+}
+
+function delF(s,i){
+  ensureDay(curDate).M[s].splice(i,1);
+  save();
+  render();
+}
+
+function upProf(){
+  DB.w=+document.getElementById('pW').value||75.6;
+  DB.a=+document.getElementById('pA').value||1.375;
+  save();
+  render();
+}
+
+function setW(i){
+  const dy=ensureDay(curDate);
+  dy.wt=(dy.wt===i)?i-1:i;
+  save();
+  render();
+}
+
+function togWK(i){
+  DB.WK[i].ok=DB.WK[i].ok?0:1;
+  save();
+  render();
+}
+
+function exportDB(){
+  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download='汪嘉鸣_膳衡备份_'+curDate+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.getElementById('bkInfo').textContent='✅ 已导出备份文件至下载目录';
+}
+
+function importDB(inp){
+  if(!inp.files||!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(d&&d.days){
+        DB=d;
+        save();
+        load();
+        document.getElementById('bkInfo').textContent='✅ 历史备份数据已100%恢复！';
+      }
+    }catch(err){alert('备份文件格式有误');}
+  };
+  r.readAsText(inp.files[0]);
+}
+
+function render(){
+  const dy=ensureDay(curDate);
+  document.getElementById('curDateTxt').textContent=curDate;
+  document.getElementById('todayTag').style.display=(curDate===getTodayStr())?'inline':'none';
+  ['t1','t2','t3'].forEach(k=>{
+    const b=document.getElementById('tb_'+k);
+    if(b)b.classList.toggle('on',dy.tpl===k);
+  });
+  const tg=Math.round((10*DB.w+6.25*171.5-5*31+5)*DB.a*.8),tP=Math.round(tg*.25/4),tC=Math.round(tg*.5/4),tF=Math.round(tg*.25/9);
+  let ti=0,tp=0,tc=0,tf=0,h='';
+  ['早餐','午餐','晚餐','加餐'].forEach(s=>{
+    let sc=0;
+    const arr=dy.M[s]||[];
+    const rows=arr.map((x,i)=>{
+      const c=Math.round(x.cal*x.g/100),p=+(x.p*x.g/100).toFixed(1),cb=+(x.c*x.g/100).toFixed(1),ft=+(x.f*x.g/100).toFixed(1);
+      sc+=c;ti+=c;tp+=p;tc+=cb;tf+=ft;
+      return '<div class="row"><div><b>'+x.n+'</b> · '+x.g+'g<div style="font-size:11px;color:#64748b">P:'+p+'g C:'+cb+'g F:'+ft+'g</div></div><div onclick="delF(\''+s+'\','+i+')" style="cursor:pointer"><b>'+c+'kcal</b> <span style="color:#e11d48;margin-left:4px">✕</span></div></div>';
+    }).join('');
+    h+='<div class="card"><div style="display:flex;justify-content:space-between"><b>'+s+'</b><b style="color:#059669">'+sc+' kcal</b></div>'+(rows||'<div style="font-size:12px;color:#94a3b8;padding-top:6px">当日暂未记录 (0 kcal)</div>')+'</div>';
+  });
+  document.getElementById('mList').innerHTML=h;
+  document.getElementById('cIn').textContent=ti;
+  document.getElementById('cTg').textContent=tg;
+  document.getElementById('cRem').textContent=Math.max(0,tg-ti);
+  document.getElementById('pIn').textContent=Math.round(tp);
+  document.getElementById('pTg').textContent=tP;
+  document.getElementById('cCarb').textContent=Math.round(tc);
+  document.getElementById('cTgC').textContent=tC;
+  document.getElementById('fIn').textContent=Math.round(tf);
+  document.getElementById('fTg').textContent=tF;
+  document.getElementById('bP').style.width=Math.min(100,tp/tP*100)+'%';
+  document.getElementById('bC').style.width=Math.min(100,tc/tC*100)+'%';
+  document.getElementById('bF').style.width=Math.min(100,tf/tF*100)+'%';
+
+  let wg='';
+  for(let i=1;i<=8;i++){
+    wg+='<button class="tpl '+(i<=dy.wt?'on':'')+'" style="text-align:center" onclick="setW('+i+')">💧<br>'+Math.min(2500,i*315)+'</button>';
+  }
+  document.getElementById('wGrid').innerHTML=wg;
+  document.getElementById('wTxt').textContent=Math.min(2500,dy.wt*315);
+  document.getElementById('wkList').innerHTML=DB.WK.map((x,i)=>'<div class="row" onclick="togWK('+i+')"><span>'+x.d+'</span><b>'+(x.ok?'✅':'⬜')+'</b></div>').join('');
+}
+
+function rAI(){
+  document.getElementById('aiBox').innerHTML=AI.map((d,i)=>{
+    const f=d.r?d.f*.5:d.f,cal=Math.round((d.cal-(d.r?d.f*.5*9:0))*d.g/100);
+    return '<div class="row"><div><b>'+d.n+' ('+d.g+'g)</b><div style="font-size:11px;color:#059669">'+cal+' kcal · 脂肪 '+(f*d.g/100).toFixed(1)+'g</div></div><button class="bdg" onclick="AI['+i+'].r=!AI['+i+'].r;rAI()">'+(d.r?'💧已涮油-50%':'点此涮油')+'</button></div>';
+  }).join('');
+}
+
+function impAI(){
+  const dy=ensureDay(curDate);
+  AI.forEach(d=>dy.M['午餐'].push({n:d.n+(d.r?'(涮油)':''),g:d.g,cal:d.cal-(d.r?d.f*.5*9:0),p:d.p,c:d.c,f:d.r?d.f*.5:d.f}));
+  save();
+  render();
+  closeM('mCam');
+}
+
+function chgP(){
+  DB.prov=document.getElementById('sProv').value;
+  DB.key=document.getElementById('iKey').value;
+  document.getElementById('topAI').textContent='AI:'+DB.prov.slice(0,6);
+  save();
+}
+
+function tab(id,b){
+  ['pMeal','pPlan','pBio'].forEach(k=>document.getElementById(k).classList.toggle('hide',k!==id));
+  document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+}
+
+function openM(id){rAI();document.getElementById(id).classList.add('show');}
+function closeM(id){document.getElementById(id).classList.remove('show');}
+
+load();
+</script>
+</body>
+</html>
